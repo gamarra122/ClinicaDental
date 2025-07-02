@@ -3,6 +3,90 @@ let currentTestimonialIndex = 0;
 const testimonials = document.querySelectorAll('.testimonial');
 const totalTestimonials = testimonials.length;
 
+// Chat en vivo
+let chatOpen = false;
+let chatMessages = [];
+
+// Mostrar chat después de 10 segundos
+setTimeout(() => {
+    showChatNotification();
+}, 10000);
+
+function showChatNotification() {
+    const chatWidget = document.getElementById('chatWidget');
+    if (chatWidget && !chatOpen) {
+        chatWidget.style.display = 'block';
+        chatWidget.style.animation = 'slideInUp 0.5s ease';
+    }
+}
+
+function toggleChat() {
+    const chatBody = document.getElementById('chatBody');
+    const chatToggle = document.getElementById('chatToggle');
+    
+    if (chatOpen) {
+        chatBody.style.display = 'none';
+        chatToggle.style.transform = 'rotate(0deg)';
+    } else {
+        chatBody.style.display = 'flex';
+        chatToggle.style.transform = 'rotate(180deg)';
+    }
+    chatOpen = !chatOpen;
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        addMessage(message, 'sent');
+        input.value = '';
+        
+        // Simular respuesta automática
+        setTimeout(() => {
+            const responses = [
+                "Gracias por tu mensaje. Te responderemos en breve.",
+                "Entiendo tu consulta. Un especialista te contactará pronto.",
+                "Excelente pregunta. Te ayudo a agendar una cita.",
+                "Estamos aquí para ayudarte. ¿Te gustaría que te llamemos?"
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            addMessage(randomResponse, 'received');
+        }, 1000);
+    }
+}
+
+function addMessage(text, type) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    const now = new Date();
+    const time = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <p>${text}</p>
+        </div>
+        <span class="message-time">${time}</span>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Enviar mensaje con Enter
+document.addEventListener('DOMContentLoaded', function() {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+});
+
 // Menu toggle para móvil
 document.getElementById('menuToggle').addEventListener('click', function() {
     const navLinks = document.getElementById('navLinks');
@@ -76,7 +160,7 @@ function autoSlideTestimonials() {
 // Iniciar auto-slide cada 5 segundos
 setInterval(autoSlideTestimonials, 5000);
 
-// Validación del formulario
+// Validación del formulario mejorada
 document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -84,6 +168,8 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
         nombre: document.getElementById('nombre').value.trim(),
         email: document.getElementById('email').value.trim(),
         telefono: document.getElementById('telefono').value.trim(),
+        servicio: document.getElementById('servicio').value,
+        fecha: document.getElementById('fecha').value,
         mensaje: document.getElementById('mensaje').value.trim()
     };
     
@@ -115,6 +201,28 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
         hideError('telefono');
     }
     
+    // Validar servicio
+    if (!formData.servicio) {
+        showError('servicio', 'Por favor, selecciona un servicio');
+        isValid = false;
+    } else {
+        hideError('servicio');
+    }
+    
+    // Validar fecha (opcional pero si se ingresa debe ser futura)
+    if (formData.fecha) {
+        const selectedDate = new Date(formData.fecha);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            showError('fecha', 'Por favor, selecciona una fecha futura');
+            isValid = false;
+        } else {
+            hideError('fecha');
+        }
+    }
+    
     // Validar mensaje
     if (!formData.mensaje || formData.mensaje.length < 10) {
         showError('mensaje', 'Por favor, ingresa un mensaje de al menos 10 caracteres');
@@ -127,6 +235,9 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
         // Simulación de envío exitoso
         showSuccessMessage();
         this.reset();
+        
+        // Limpiar fecha mínima
+        document.getElementById('fecha').min = '';
     }
 });
 
@@ -256,6 +367,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         animateOnScroll();
     }, 500);
+
+    // Configurar fecha mínima para el formulario
+    const fechaInput = document.getElementById('fecha');
+    if (fechaInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.min = today;
+    }
 });
 
 // Efecto parallax sutil para el hero

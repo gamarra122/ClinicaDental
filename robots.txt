@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://clinicasonrisa.com/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /private/ 
